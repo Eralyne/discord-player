@@ -206,12 +206,10 @@ const playdl = require("play-dl");
 const queue = player.createQueue(...);
 if (!queue.createStream) {
     queue.createStream = async (track, source, _queue) => {
-        // only trap youtube source
-        if (source === "youtube") {
-            // track here would be youtube track
-            return (await playdl.stream(track.url)).stream;
-            // we must return readable stream or void (returning void means telling discord-player to look for default extractor)
-        }
+        // track here would be youtube track (all tracks will return as youtube as they are pre-converted)
+        return (await playdl.stream(track)).stream;
+        // we must return readable stream or void (returning void means telling discord-player to look for default extractor)
+        
     };
 }
 ```
