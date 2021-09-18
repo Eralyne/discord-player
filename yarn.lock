@@ -1270,6 +1270,7 @@
     "@typescript-eslint/typescript-estree" "4.31.1"
     debug "^4.3.1"
 
+
 "@typescript-eslint/scope-manager@4.31.1":
   version "4.31.1"
   resolved "https://registry.yarnpkg.com/@typescript-eslint/scope-manager/-/scope-manager-4.31.1.tgz#0c21e8501f608d6a25c842fcf59541ef4f1ab561"
@@ -1277,6 +1278,7 @@
   dependencies:
     "@typescript-eslint/types" "4.31.1"
     "@typescript-eslint/visitor-keys" "4.31.1"
+
 
 "@typescript-eslint/types@4.31.1":
   version "4.31.1"
