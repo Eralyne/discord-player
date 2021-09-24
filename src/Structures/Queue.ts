@@ -4,6 +4,7 @@ import { StreamDispatcher } from "../VoiceInterface/StreamDispatcher";
 import Track from "./Track";
 import { PlayerOptions, PlayerProgressbarOptions, PlayOptions, QueueFilters, QueueRepeatMode, TrackSource } from "../types/types";
 import ytdl from "discord-ytdl-core";
+import ytdlCore from "ytdl-core";
 import { AudioResource, StreamType } from "@discordjs/voice";
 import { Util } from "../utils/Util";
 import YouTube from "youtube-sr";
@@ -658,13 +659,8 @@ class Queue<T = unknown> {
                             return err.message.toLowerCase().includes("premature close") ? null : this.player.emit("error", this, err);
                         });
             } else {
-                stream = ytdl(link, {
+                stream = ytdlCore(link, {
                     ...this.options.ytdlOptions,
-                    // discord-ytdl-core
-                    opusEncoded: false,
-                    fmt: "s16le",
-                    encoderArgs: options.encoderArgs ?? this._activeFilters.length ? ["-af", AudioFilters.create(this._activeFilters)] : [],
-                    seek: options.seek ? options.seek / 1000 : 0
                 }).on("error", (err) => {
                     return err.message.toLowerCase().includes("premature close") ? null : this.player.emit("error", this, err);
                 });
