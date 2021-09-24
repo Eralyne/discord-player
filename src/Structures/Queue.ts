@@ -691,7 +691,7 @@ class Queue<T = unknown> {
         }
 
         const resource: AudioResource<Track> = this.connection.createStream(stream, {
-            type: StreamType.Raw,
+            type: (track.raw.source === "youtube") ? StreamType.WebmOpus : StreamType.Raw,
             data: track
         });
 
