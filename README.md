@@ -99,7 +99,7 @@ client.once("ready", () => {
 client.on("interactionCreate", async (interaction) => {
     if (!interaction.isCommand()) return;
 
-    // /play Despacito
+    // /play track:Despacito
     // will play "Despacito" in the voice channel
     if (interaction.commandName === "play") {
         if (!interaction.member.voice.channelId) return await interaction.reply({ content: "You are not in a voice channel!", ephemeral: true });
@@ -156,9 +156,10 @@ You just need to install it using `npm i --save @discord-player/extractor` (disc
 These bots are made by the community, they can help you build your own!
 
 * **[Discord Music Bot](https://github.com/Androz2091/discord-music-bot)** by [Androz2091](https://github.com/Androz2091)
+* [Musico](https://github.com/Whirl21/Musico) by [Whirl21](https://github.com/Whirl21)
+* [Music-bot](https://github.com/ZerioDev/Music-bot) by [ZerioDev](https://github.com/ZerioDev)
 * [AtlantaBot](https://github.com/Androz2091/AtlantaBot) by [Androz2091](https://github.com/Androz2091) (**outdated**)
 * [Discord-Music](https://github.com/inhydrox/discord-music) by [inhydrox](https://github.com/inhydrox) (**outdated**)
-* [Music-bot](https://github.com/ZerioDev/Music-bot) by [ZerioDev](https://github.com/ZerioDev) (**outdated**)
 
 ## Advanced
 
@@ -202,17 +203,18 @@ Here's an example on how you can use **[play-dl](https://npmjs.com/package/play-
 const playdl = require("play-dl");
 
 // other code
-
-const queue = player.createQueue(...);
-if (!queue.createStream) {
-    queue.createStream = async (track, source, _queue) => {
-        // track here would be youtube track (all tracks will return as youtube as they are pre-converted)
-        return (await playdl.stream(track)).stream;
-        // we must return readable stream or void (returning void means telling discord-player to look for default extractor)
-        
-    };
-}
+const queue = player.createQueue(..., {
+    ...,
+    async onBeforeCreateStream(track, source, _queue) {
+        // only trap youtube source
+        if (source === "youtube") {
+            // track here would be youtube track
+            return (await playdl.stream(track.url)).stream;
+            // we must return readable stream or void (returning void means telling discord-player to look for default extractor)
+        }
+    }
+});
 ```
 
-`<Queue>.createStream` is called before actually downloading the stream. It is a different concept from extractors, where you are **just** downloading
-streams. `source` here will be a video source. Streams from `createStream` are then piped to `FFmpeg` and finally sent to Discord voice servers.
+`<Queue>.onBeforeCreateStream` is called before actually downloading the stream. It is a different concept from extractors, where you are **just** downloading
+streams. `source` here will be a video source. Streams from `onBeforeCreateStream` are then piped to `FFmpeg` and finally sent to Discord voice servers.
