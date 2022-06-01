@@ -140,8 +140,18 @@ class Player extends EventEmitter<PlayerEvents> {
                 }, queue.options.leaveOnEmptyCooldown || 0).unref();
                 queue._cooldownsTimeout.set(`empty_${oldState.guild.id}`, timeout);
             }
+        } else {
+            if (!Util.isVoiceEmpty(queue.connection.channel)) return;
+            const timeout = setTimeout(() => {
+                if (!Util.isVoiceEmpty(queue.connection.channel)) return;
+                if (!this.queues.has(queue.guild.id)) return;
+                if (queue.options.leaveOnEmpty) queue.destroy();
+                this.emit("channelEmpty", queue);
+            }, queue.options.leaveOnEmptyCooldown || 0).unref();
+            queue._cooldownsTimeout.set(`empty_${oldState.guild.id}`, timeout);
         }
     }
+
 
     /**
      * Creates a queue for a guild if not available, else returns existing queue
