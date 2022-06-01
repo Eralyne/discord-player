@@ -10,6 +10,7 @@ import YouTube from "youtube-sr";
 import AudioFilters from "../utils/AudioFilters";
 import { PlayerError, ErrorStatusCode } from "./PlayerError";
 import type { Readable } from "stream";
+import { VolumeTransformer } from "../VoiceInterface/VolumeTransformer";
 
 class Queue<T = unknown> {
     public readonly guild: Guild;
@@ -28,7 +29,7 @@ class Queue<T = unknown> {
     private _filtersUpdate = false;
     #lastVolume = 0;
     #destroyed = false;
-    public createStream: (track: Track, source: TrackSource, queue: Queue) => Promise<Readable> | Readable = null;
+    public onBeforeCreateStream: (track: Track, source: TrackSource, queue: Queue) => Promise<Readable | undefined> = null;
 
     /**
      * Queue constructor
@@ -105,10 +106,14 @@ class Queue<T = unknown> {
                     highWaterMark: 1 << 25
                 },
                 initialVolume: 100,
-                bufferingTimeout: 3000
+                bufferingTimeout: 3000,
+                spotifyBridge: true,
+                disableVolume: false
             } as PlayerOptions,
             options
         );
+
+        if ("onBeforeCreateStream" in this.options) this.onBeforeCreateStream = this.options.onBeforeCreateStream;
 
         this.player.emit("debug", this, `Queue initialized:\n\n${this.player.scanDeps()}`);
     }
@@ -150,8 +155,7 @@ class Queue<T = unknown> {
         if (!["GUILD_STAGE_VOICE", "GUILD_VOICE"].includes(_channel?.type))
             throw new PlayerError(`Channel type must be GUILD_VOICE or GUILD_STAGE_VOICE, got ${_channel?.type}!`, ErrorStatusCode.INVALID_ARG_TYPE);
         const connection = await this.player.voiceUtils.connect(_channel, {
-            deaf: this.options.autoSelfDeaf,
-            maxTime: this.player.options.connectionTimeout || 20000
+            deaf: this.options.autoSelfDeaf
         });
         this.connection = connection;
 
@@ -191,17 +195,19 @@ class Queue<T = unknown> {
             if (!this.tracks.length && this.repeatMode === QueueRepeatMode.OFF) {
                 if (this.options.leaveOnEnd) this.destroy();
                 this.player.emit("queueEnd", this);
+            } else if (!this.tracks.length && this.repeatMode === QueueRepeatMode.AUTOPLAY) {
+                this._handleAutoplay(Util.last(this.previousTracks));
             } else {
-                if (this.repeatMode !== QueueRepeatMode.AUTOPLAY) {
-                    if (this.repeatMode === QueueRepeatMode.TRACK) return void this.play(Util.last(this.previousTracks), { immediate: true });
-                    if (this.repeatMode === QueueRepeatMode.QUEUE) this.tracks.push(Util.last(this.previousTracks));
-                    const nextTrack = this.tracks.shift();
-                    this.play(nextTrack, { immediate: true });
-                    return;
-                } else {
-                    this._handleAutoplay(Util.last(this.previousTracks));
-                }
+                if (this.repeatMode === QueueRepeatMode.TRACK) return void this.play(Util.last(this.previousTracks), { immediate: true });
+                if (this.repeatMode === QueueRepeatMode.QUEUE) this.tracks.push(Util.last(this.previousTracks));
+                const nextTrack = this.tracks.shift();
+                this.play(nextTrack, { immediate: true });
+                return;
             }
+        });
+
+        await this.player.voiceUtils.enterReady(this.connection.voiceConnection, {
+            maxTime: this.player.options.connectionTimeout || 30_000
         });
 
         return this;
@@ -633,19 +639,21 @@ class Queue<T = unknown> {
         }
 
         let stream = null;
-        const customDownloader = typeof this.createStream === "function";
+        const customDownloader = typeof this.onBeforeCreateStream === "function";
 
         if (["youtube", "spotify"].includes(track.raw.source)) {
-            if (track.raw.source === "spotify" && !track.raw.engine) {
+            let spotifyResolved = false;
+            if (this.options.spotifyBridge && track.raw.source === "spotify" && !track.raw.engine) {
                 track.raw.engine = await YouTube.search(`${track.author} ${track.title}`, { type: "video" })
                     .then((x) => x[0].url)
                     .catch(() => null);
+                spotifyResolved = true;
             }
             const link = track.raw.source === "spotify" ? track.raw.engine : track.url;
             if (!link) return void this.play(this.tracks.shift(), { immediate: true });
 
             if (customDownloader) {
-                stream = (await this.createStream(link, track.raw.source, this)) ?? null;
+                stream = (await this.onBeforeCreateStream(track, spotifyResolved ? "youtube" : track.raw.source, this)) ?? null;
                 if (stream)
                     stream = ytdl
                         .arbitraryStream(stream, {
@@ -670,7 +678,7 @@ class Queue<T = unknown> {
                 });
             }
         } else {
-            const tryArb = (customDownloader && (await this.createStream(track, track.raw.source || track.raw.engine, this))) || null;
+            const tryArb = (customDownloader && (await this.onBeforeCreateStream(track, track.raw.source || track.raw.engine, this))) || null;
             const arbitrarySource = tryArb
                 ? tryArb
                 : track.raw.source === "soundcloud"
@@ -692,11 +700,18 @@ class Queue<T = unknown> {
 
         const resource: AudioResource<Track> = this.connection.createStream(stream, {
             type: StreamType.Raw,
-            data: track
+            data: track,
+            disableVolume: Boolean(this.options.disableVolume)
         });
 
         if (options.seek) this._streamTime = options.seek;
         this._filtersUpdate = options.filtersUpdate;
+
+        const volumeTransformer = resource.volume as VolumeTransformer;
+        if (volumeTransformer?.hasSmoothness && typeof this.options.volumeSmoothness === "number") {
+            if (typeof volumeTransformer.setSmoothness === "function") volumeTransformer.setSmoothness(this.options.volumeSmoothness || 0);
+        }
+
         this.setVolume(this.options.initialVolume);
 
         setTimeout(() => {
