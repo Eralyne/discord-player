@@ -10,6 +10,7 @@ import YouTube from "youtube-sr";
 import AudioFilters from "../utils/AudioFilters";
 import { PlayerError, ErrorStatusCode } from "./PlayerError";
 import type { Readable } from "stream";
+import { VolumeTransformer } from "../VoiceInterface/VolumeTransformer";
 
 class Queue<T = unknown> {
     public readonly guild: Guild;
@@ -106,7 +107,8 @@ class Queue<T = unknown> {
                 },
                 initialVolume: 100,
                 bufferingTimeout: 3000,
-                spotifyBridge: true
+                spotifyBridge: true,
+                disableVolume: false
             } as PlayerOptions,
             options
         );
@@ -153,8 +155,7 @@ class Queue<T = unknown> {
         if (!["GUILD_STAGE_VOICE", "GUILD_VOICE"].includes(_channel?.type))
             throw new PlayerError(`Channel type must be GUILD_VOICE or GUILD_STAGE_VOICE, got ${_channel?.type}!`, ErrorStatusCode.INVALID_ARG_TYPE);
         const connection = await this.player.voiceUtils.connect(_channel, {
-            deaf: this.options.autoSelfDeaf,
-            maxTime: this.player.options.connectionTimeout || 20000
+            deaf: this.options.autoSelfDeaf
         });
         this.connection = connection;
 
@@ -203,6 +204,10 @@ class Queue<T = unknown> {
                 this.play(nextTrack, { immediate: true });
                 return;
             }
+        });
+
+        await this.player.voiceUtils.enterReady(this.connection.voiceConnection, {
+            maxTime: this.player.options.connectionTimeout || 30_000
         });
 
         return this;
@@ -695,11 +700,18 @@ class Queue<T = unknown> {
 
         const resource: AudioResource<Track> = this.connection.createStream(stream, {
             type: StreamType.Raw,
-            data: track
+            data: track,
+            disableVolume: Boolean(this.options.disableVolume)
         });
 
         if (options.seek) this._streamTime = options.seek;
         this._filtersUpdate = options.filtersUpdate;
+
+        const volumeTransformer = resource.volume as VolumeTransformer;
+        if (volumeTransformer?.hasSmoothness && typeof this.options.volumeSmoothness === "number") {
+            if (typeof volumeTransformer.setSmoothness === "function") volumeTransformer.setSmoothness(this.options.volumeSmoothness || 0);
+        }
+
         this.setVolume(this.options.initialVolume);
 
         setTimeout(() => {
