@@ -14,6 +14,7 @@ import { Client as SoundCloud, SearchResult as SoundCloudSearchResult } from "so
 import { Playlist } from "./Structures/Playlist";
 import { ExtractorModel } from "./Structures/ExtractorModel";
 import { generateDependencyReport } from "@discordjs/voice";
+import { fetch } from "undici";
 
 const soundcloud = new SoundCloud();
 
@@ -341,7 +342,7 @@ class Player extends EventEmitter<PlayerEvents> {
                 return { playlist: null, tracks: res };
             }
             case QueryType.SPOTIFY_SONG: {
-                const spotifyData = await Spotify(Util.getFetch()).getData(query).catch(Util.noop);
+                const spotifyData = await Spotify(fetch).getData(query).catch(Util.noop);
                 if (!spotifyData) return { playlist: null, tracks: [] };
                 const spotifyTrack = new Track(this, {
                     title: spotifyData.name,
@@ -362,9 +363,7 @@ class Player extends EventEmitter<PlayerEvents> {
             }
             case QueryType.SPOTIFY_PLAYLIST:
             case QueryType.SPOTIFY_ALBUM: {
-                const spotifyPlaylist = await Spotify(await Util.getFetch())
-                    .getData(query)
-                    .catch(Util.noop);
+                const spotifyPlaylist = await Spotify(fetch).getData(query).catch(Util.noop);
                 if (!spotifyPlaylist) return { playlist: null, tracks: [] };
 
                 const playlist = new Playlist(this, {
