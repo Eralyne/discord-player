@@ -185,7 +185,7 @@ class Player extends EventEmitter<PlayerEvents> {
 
         try {
             prev.destroy();
-        } catch { } // eslint-disable-line no-empty
+        } catch {} // eslint-disable-line no-empty
         this.queues.delete(guild.id);
 
         return prev;
@@ -215,9 +215,9 @@ class Player extends EventEmitter<PlayerEvents> {
                 const playlist = !data.playlist
                     ? null
                     : new Playlist(this, {
-                        ...data.playlist,
-                        tracks: []
-                    });
+                          ...data.playlist,
+                          tracks: []
+                      });
 
                 const tracks = data.data.map(
                     (m) =>
@@ -244,9 +244,9 @@ class Player extends EventEmitter<PlayerEvents> {
                 const playlist = !data.playlist
                     ? null
                     : new Playlist(this, {
-                        ...data.playlist,
-                        tracks: []
-                    });
+                          ...data.playlist,
+                          tracks: []
+                      });
 
                 const tracks = data.data.map(
                     (m) =>
@@ -373,13 +373,13 @@ class Player extends EventEmitter<PlayerEvents> {
                     author:
                         spotifyPlaylist.type !== "playlist"
                             ? {
-                                name: spotifyPlaylist.artists[0]?.name ?? "Unknown Artist",
-                                url: spotifyPlaylist.artists[0]?.external_urls?.spotify ?? null
-                            }
+                                  name: spotifyPlaylist.artists[0]?.name ?? "Unknown Artist",
+                                  url: spotifyPlaylist.artists[0]?.external_urls?.spotify ?? null
+                              }
                             : {
-                                name: spotifyPlaylist.owner?.display_name ?? spotifyPlaylist.owner?.id ?? "Unknown Artist",
-                                url: spotifyPlaylist.owner?.external_urls?.spotify ?? null
-                            },
+                                  name: spotifyPlaylist.owner?.display_name ?? spotifyPlaylist.owner?.id ?? "Unknown Artist",
+                                  url: spotifyPlaylist.owner?.external_urls?.spotify ?? null
+                              },
                     tracks: [],
                     id: spotifyPlaylist.id,
                     url: spotifyPlaylist.external_urls?.spotify ?? query,

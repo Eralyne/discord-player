@@ -682,10 +682,10 @@ class Queue<T = unknown> {
             const arbitrarySource = tryArb
                 ? tryArb
                 : track.raw.source === "soundcloud"
-                    ? await track.raw.engine.downloadProgressive()
-                    : typeof track.raw.engine === "function"
-                        ? await track.raw.engine()
-                        : track.raw.engine;
+                ? await track.raw.engine.downloadProgressive()
+                : typeof track.raw.engine === "function"
+                ? await track.raw.engine()
+                : track.raw.engine;
             stream = ytdl
                 .arbitraryStream(arbitrarySource, {
                     opusEncoded: false,
