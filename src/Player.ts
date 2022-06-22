@@ -1,4 +1,4 @@
-import { Client, Collection, GuildResolvable, Snowflake, User, VoiceState, GatewayIntentBits } from "discord.js";
+import { Client, Collection, GuildResolvable, Snowflake, User, VoiceState, IntentsBitField } from "discord.js";
 import { TypedEmitter as EventEmitter } from "tiny-typed-emitter";
 import { Queue } from "./Structures/Queue";
 import { VoiceUtils } from "./VoiceInterface/VoiceUtils";
@@ -45,7 +45,7 @@ class Player extends EventEmitter<PlayerEvents> {
          */
         this.client = client;
 
-        if (this.client?.options?.intents && !new GatewayIntentBits(this.client?.options?.intents).has(GatewayIntentBits.GuildVoiceStates)) {
+        if (this.client?.options?.intents && !new IntentsBitField(this.client?.options?.intents).has(IntentsBitField.Flags.GuildVoiceStates)) {
             throw new PlayerError('client is missing "GuildVoiceStates" intent');
         }
 
@@ -77,9 +77,12 @@ class Player extends EventEmitter<PlayerEvents> {
         const queue = this.getQueue(oldState.guild.id);
         if (!queue) return;
 
-        if (oldState.channelId && newState.channelId && oldState.channelId !== newState.channelId) {
+        if (oldState && newState && oldState.channelId !== newState.channelId) {
             if (queue?.connection && newState.member.id === newState.guild.members.me.id) queue.connection.channel = newState.channel;
-            if (newState.member.id === newState.guild.members.me.id || (newState.member.id !== newState.guild.members.me.id && oldState.channelId === queue.connection.channel.id)) {
+            if (
+                (newState.channelId && newState.member.id === newState.guild.members.me.id) ||
+                (newState.channelId && newState.member.id !== newState.guild.members.me.id && oldState.channelId === queue.connection.channel.id)
+            ) {
                 if (!Util.isVoiceEmpty(queue.connection.channel)) return;
                 const timeout = setTimeout(() => {
                     if (!Util.isVoiceEmpty(queue.connection.channel)) return;

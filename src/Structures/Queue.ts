@@ -1,4 +1,5 @@
-import { Collection, Guild, StageChannel, VoiceChannel, SnowflakeUtil, GuildChannelResolvable, ChannelType } from "discord.js";
+import { Collection, Guild, StageChannel, VoiceChannel, SnowflakeUtil, GuildChannelResolvable } from "discord.js";
+import { ChannelType } from "discord-api-types/v10";
 import { Player } from "../Player";
 import { StreamDispatcher } from "../VoiceInterface/StreamDispatcher";
 import Track from "./Track";

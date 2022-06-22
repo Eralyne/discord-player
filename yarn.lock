@@ -2,7 +2,7 @@
 # yarn lockfile v1
 
 
-"@babel/code-frame@^7.16.0":
+"@babel/code-frame@^7.16.7":
   version "7.16.7"
   resolved "https://registry.yarnpkg.com/@babel/code-frame/-/code-frame-7.16.7.tgz#44416b6bd7624b998f5b1af5d470856c40138789"
   integrity sha512-iAXqUn8IIeBTNd72xsFlgaXHkMBMt6y4HJp1tIaK465CWLT/fG1aqB7ykr95gHHmlBdGbFeWWfyB4NJJ0nmeIg==
@@ -1102,14 +1102,7 @@ miniget@^4.2.2:
   resolved "https://registry.yarnpkg.com/miniget/-/miniget-4.2.2.tgz#db20320f265efdc4c1826a0be431d56753074475"
   integrity sha512-a7voNL1N5lDMxvTMExOkg+Fq89jM2vY8pAi9ZEWzZtfNmdfP6RXkvUtFnCAXoCv2T9k1v/fUJVaAEuepGcvLYA==
 
-minimatch@^3.0.4:
-  version "3.1.2"
-  resolved "https://registry.yarnpkg.com/minimatch/-/minimatch-3.1.2.tgz#19cd194bfd3e428f049a70817c038d89ab4be35b"
-  integrity sha512-J7p63hRiAjw1NDEww1W7i37+ByIrOWO5XQQAzZ3VOcL0PNybwpfmV/N05zFAzwQ9USyEcX6t3UO+K5aqBQOIHw==
-  dependencies:
-    brace-expansion "^1.1.7"
-
-minimatch@^3.1.2:
+minimatch@^3.0.4, minimatch@^3.1.2:
   version "3.1.2"
   resolved "https://registry.yarnpkg.com/minimatch/-/minimatch-3.1.2.tgz#19cd194bfd3e428f049a70817c038d89ab4be35b"
   integrity sha512-J7p63hRiAjw1NDEww1W7i37+ByIrOWO5XQQAzZ3VOcL0PNybwpfmV/N05zFAzwQ9USyEcX6t3UO+K5aqBQOIHw==
@@ -1335,7 +1328,7 @@ soundcloud-scraper@^5.0.2:
     m3u8stream "^0.8.4"
     node-fetch "^2.6.1"
 
-sourcemap-codec@^1.4.4:
+sourcemap-codec@^1.4.8:
   version "1.4.8"
   resolved "https://registry.yarnpkg.com/sourcemap-codec/-/sourcemap-codec-1.4.8.tgz#ea804bd94857402e6992d05a38ef1ae35a9ab4c4"
   integrity sha512-9NykojV5Uih4lgo5So5dtw+f0JgJX30KCNI8gwhz2J9A15wD0Ml6tjHKwf6fTSa6fAdVBdZeNOs9eJ71qCk8vA==
